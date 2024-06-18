@@ -4,7 +4,7 @@
     open Lexical
 }
 
-let punctuation = ['+' '*' '?' '|' ',' ':' '(' ')']
+let punctuation = ['+' '*' '?' '|' ',' ':' '(' ')' '\n']
 let whitespace = [' ' '\t']
 
 let identifier = (_ # punctuation # whitespace)+
@@ -12,14 +12,14 @@ let identifier = (_ # punctuation # whitespace)+
 rule get_token = parse
 | whitespace { get_token lexbuf }
 | '\n' { Lexing.new_line lexbuf; get_token lexbuf }
-| '+' { Tplus (lexbuf.lex_curr_p) }
-| '*' { Tstar (lexbuf.lex_curr_p) }
-| '?' { Tquest (lexbuf.lex_curr_p) }
-| '|' { Tgun (lexbuf.lex_curr_p) }
-| '(' { Tlp (lexbuf.lex_curr_p) }
-| ')' { Trp (lexbuf.lex_curr_p) }
-| ',' { Tcomma (lexbuf.lex_curr_p) }
-| "::=" { Tdef (lexbuf.lex_curr_p) }
+| '+' { Tplus (lexbuf.lex_start_p) }
+| '*' { Tstar (lexbuf.lex_start_p) }
+| '?' { Tquest (lexbuf.lex_start_p) }
+| '|' { Tgun (lexbuf.lex_start_p) }
+| '(' { Tlp (lexbuf.lex_start_p) }
+| ')' { Trp (lexbuf.lex_start_p) }
+| ',' { Tcomma (lexbuf.lex_start_p) }
+| "::=" { Tdef (lexbuf.lex_start_p) }
 | "\"" {
     let posL = lexbuf.lex_start_p in
     let ctx = get_string (Buffer.create 17) lexbuf in

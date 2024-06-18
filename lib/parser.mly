@@ -26,28 +26,22 @@ bnf_file:
 | l = bnf_item_or_macro*; Teof; { l }
 
 bnf_item_or_macro:
-| i = bnf_item { i }
-| m = macro { m }
-
-macro:
 | id = Tidentifier; "("; l = Tidentifier*; ")"; r = item_rules;
 {
     {
         item_desc = ItemMacroDef {
-            macdef_id = id;
+            macdef_id = fst id;
             macdef_param = l;
             macdef_body = fst r;
         };
         item_rng = Range.join (snd id) (snd r);
     }
 }
-
-bnf_item:
 | id = Tidentifier; "::="; r = item_rules; 
 {
     {
         item_desc = ItemBNF {
-            item_id = id;
+            item_id = fst id;
             item_rules = fst r;
         };
         item_rng = Range.join (snd id) (snd r);
@@ -73,7 +67,7 @@ rhs_item:
 | i = Tidentifier
 {
     {
-        rhs_item_desc = Tid (i);
+        rhs_item_desc = Tid (fst i);
         rhs_item_rng = snd i;
     }
 }
@@ -88,7 +82,7 @@ rhs_item:
 {
     {
         rhs_item_desc = Macro {
-            macro_id = i;
+            macro_id = fst i;
             macro_args = fst l;
         };
         rhs_item_rng = Range.join (snd i) (get_rng (Trp posR))

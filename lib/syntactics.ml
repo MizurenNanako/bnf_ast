@@ -15,7 +15,7 @@ module AST = struct
         }
     | ItemMacroDef of
         { macdef_id : id
-        ; macdef_param : id list
+        ; macdef_param : id ranged list
         ; macdef_body : rhs_item list
         }
 
@@ -32,7 +32,7 @@ module AST = struct
         ; macro_args : rhs_item list
         }
 
-  and id = string ranged
+  and id = string
   and str = string
 
   type t = item list
