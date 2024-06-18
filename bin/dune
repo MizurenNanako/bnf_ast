@@ -1,0 +1,4 @@
+(executable
+ (public_name bnf_ast)
+ (name main)
+ (libraries lexer parser lexical syntactics sexplib))
