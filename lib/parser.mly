@@ -19,14 +19,15 @@
 %token Teof
 
 %start <t> bnf_file
-
+%type <rule> rule
+%type <rule list * rng> rules
 %%
 
 bnf_file:
 | l = bnf_item_or_macro*; Teof; { l }
 
 bnf_item_or_macro:
-| id = Tidentifier; "("; l = Tidentifier*; ")"; r = item_rules;
+| id = Tidentifier; "("; l = Tidentifier*; ")"; r = rules;
 {
     {
         item_desc = ItemMacroDef {
@@ -37,7 +38,7 @@ bnf_item_or_macro:
         item_rng = Range.join (snd id) (snd r);
     }
 }
-| id = Tidentifier; "::="; r = item_rules; 
+| id = Tidentifier; "::="; r = rules; 
 {
     {
         item_desc = ItemBNF {
@@ -48,20 +49,39 @@ bnf_item_or_macro:
     }
 }
 
-item_rules:
-| posL = "|"?; l = item_rules_; 
+rules:
+| posL = "|"?; l = rules_; 
 {
     match posL with
     | Some posL -> List.rev (fst l), Range.join (get_rng (Tgun posL)) (snd l)
     | None -> List.rev (fst l), snd l
 }
 
-item_rules_:
-| l = item_rules_; "|"; i = rhs_item; 
+rules_:
+| l = rules_; "|"; i = rule; 
 {
-    i :: (fst l), Range.join (snd l) i.rhs_item_rng
+    i :: (fst l), Range.join (snd l) i.rule_rng
 }
-| i = rhs_item; { [i], i.rhs_item_rng }
+| i = rule; { [i], i.rule_rng }
+
+rule:
+| r = rule_; { { r with rule_desc = List.rev r.rule_desc} }
+
+rule_:
+| r = rhs_item; 
+{
+    {
+        rule_desc = [r];
+        rule_rng = r.rhs_item_rng;
+    }
+}
+| l = rule_; r = rhs_item;
+{
+    {
+        rule_desc = r :: l.rule_desc;
+        rule_rng = Range.join l.rule_rng r.rhs_item_rng;
+    }
+}
 
 rhs_item:
 | i = Tidentifier
@@ -78,12 +98,12 @@ rhs_item:
         rhs_item_rng = snd i;
     }
 }
-| i = Tidentifier; "("; l = item_rules; posR = ")";
+| i = Tidentifier; "("; l = rhs_item*; posR = ")";
 {
     {
         rhs_item_desc = Macro {
             macro_id = fst i;
-            macro_args = fst l;
+            macro_args = l;
         };
         rhs_item_rng = Range.join (snd i) (get_rng (Trp posR))
     }

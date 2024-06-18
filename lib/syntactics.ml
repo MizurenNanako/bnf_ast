@@ -11,13 +11,18 @@ module AST = struct
   and item_desc =
     | ItemBNF of
         { item_id : id
-        ; item_rules : rhs_item list
+        ; item_rules : rule list
         }
     | ItemMacroDef of
         { macdef_id : id
         ; macdef_param : id ranged list
-        ; macdef_body : rhs_item list
+        ; macdef_body : rule list
         }
+
+  and rule =
+    { rule_desc : rhs_item list
+    ; rule_rng : Range.t
+    }
 
   and rhs_item =
     { rhs_item_desc : rhs_item_desc
