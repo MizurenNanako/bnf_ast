@@ -14,6 +14,7 @@
 %token <Range.pos> Tstar "*"
 %token <Range.pos> Tquest "?"
 %token <Range.pos> Tcomma ","
+%token <Range.pos> Tsemi ";"
 
 %token <Range.pos> Tdef "::="
 %token Teof
@@ -24,12 +25,19 @@
 %%
 
 bnf_file:
-| l = bnf_item_or_macro*; Teof; { l }
+| l = the_list; Teof;
+{
+    l |> List.filter_map (fun k -> k) |> List.rev
+}
+
+the_list:
+| l = the_list; ";"; i = bnf_item_or_macro; { i :: l }
+| i = bnf_item_or_macro; { [i] }
 
 bnf_item_or_macro:
 | id = Tidentifier; "("; l = Tidentifier*; ")"; r = rules;
 {
-    {
+    Some {
         item_desc = ItemMacroDef {
             macdef_id = fst id;
             macdef_param = l;
@@ -40,7 +48,7 @@ bnf_item_or_macro:
 }
 | id = Tidentifier; "::="; r = rules; 
 {
-    {
+    Some {
         item_desc = ItemBNF {
             item_id = fst id;
             item_rules = fst r;
@@ -48,6 +56,7 @@ bnf_item_or_macro:
         item_rng = Range.join (snd id) (snd r);
     }
 }
+| { None }
 
 rules:
 | posL = "|"?; l = rules_; 
@@ -84,6 +93,39 @@ rule_:
 }
 
 rhs_item:
+| i = rhs_item; posR = "+"; 
+{
+    {
+        rhs_item_desc = Macro {
+            macro_id = "nonempty_list";
+            macro_args = [i];
+        };
+        rhs_item_rng = Range.join i.rhs_item_rng (get_rng (Tplus posR))
+    }
+} 
+| i = rhs_item; posR = "*"; 
+{
+    {
+        rhs_item_desc = Macro {
+            macro_id = "list";
+            macro_args = [i];
+        };
+        rhs_item_rng = Range.join i.rhs_item_rng (get_rng (Tstar posR))
+    }
+}
+| i = rhs_item; posR = "?"; 
+{
+    {
+        rhs_item_desc = Macro {
+            macro_id = "optional";
+            macro_args = [i];
+        };
+        rhs_item_rng = Range.join i.rhs_item_rng (get_rng (Tstar posR))
+    }
+}
+| i = rhs_item_ { i }
+
+rhs_item_:
 | i = Tidentifier
 {
     {
@@ -98,7 +140,7 @@ rhs_item:
         rhs_item_rng = snd i;
     }
 }
-| i = Tidentifier; "("; l = rhs_item*; posR = ")";
+| i = Tidentifier; "("; l = separated_list(",", rhs_item); posR = ")";
 {
     {
         rhs_item_desc = Macro {

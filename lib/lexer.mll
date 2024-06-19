@@ -19,6 +19,7 @@ rule get_token = parse
 | '(' { Tlp (lexbuf.lex_start_p) }
 | ')' { Trp (lexbuf.lex_start_p) }
 | ',' { Tcomma (lexbuf.lex_start_p) }
+| ';' { Tsemi (lexbuf.lex_start_p) }
 | "::=" { Tdef (lexbuf.lex_start_p) }
 | "\"" {
     let posL = lexbuf.lex_start_p in

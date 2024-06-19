@@ -39,6 +39,7 @@ module Token = struct
     | Tstar of pos (* * *)
     | Tquest of pos (* ? *)
     | Tcomma of pos (* , *)
+    | Tsemi of pos (* ; *)
     (* length of 3 *)
     | Tdef of pos (* ::= *)
     | Teof
@@ -46,8 +47,8 @@ module Token = struct
 
   let get_rng = function
     | Tstring (_, r) | Tidentifier (_, r) -> r
-    | Tlp p | Trp p | Tgun p | Tstar p | Tplus p | Tquest p | Tcomma p ->
-      p, { p with pos_cnum = p.pos_cnum + 1 }
+    | Tlp p | Trp p | Tgun p | Tstar p | Tplus p | Tquest p | Tcomma p | Tsemi p
+      -> p, { p with pos_cnum = p.pos_cnum + 1 }
     | Tdef p -> p, { p with pos_cnum = p.pos_cnum + 3 }
     | Teof -> Lexing.dummy_pos, Lexing.dummy_pos
   ;;

@@ -11,7 +11,7 @@ let () =
     | _ ->
       (lexbuf.lex_start_p, lexbuf.lex_curr_p)
       |> Range.sexp_of_t
-      |> Sexplib.Sexp.output stdout;
+      |> Sexplib.Sexp.output_hum stdout;
       []
   in
   ast
